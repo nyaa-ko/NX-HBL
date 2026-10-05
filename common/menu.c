@@ -484,6 +484,8 @@ void menuStartup(void) {
     menuScan(rootPath);
 
     menuStartupCommon();
+    hblUiInit();
+    hblResetMotion();
 }
 
 void themeMenuStartup(void) {
@@ -682,52 +684,13 @@ void menuUpdateNetloader(netloaderState *netloader_state) {
 }
 
 void menuLoop(void) {
-    menuEntry_s* me;
     menu_s* menu = NULL;
-    int i;
-    int curPos[2]={0};
     netloaderState netloader_state;
-    ThemeLayoutObject *layoutobj = NULL;
+    const char *title = "Homebrew Launcher";
 
     hblDrawBackground();
     hblDrawParticles();
-    menuTimer += 0.05;
-
-    DrawTextFromLayout(ThemeLayoutId_HbmenuVersion, themeCurrent.textColor, VERSION);
-    u32 statusXPos = drawStatus();
-
-    #ifdef __SWITCH__
-    AppletType at = appletGetAppletType();
-    layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_AttentionText];
-    if (at != AppletType_Application && at != AppletType_SystemApplication && layoutobj->visible) {
-        const char* appletMode = textGetString(StrId_AppletMode);
-        u32 x_pos = GetTextXCoordinate(layoutobj->font, statusXPos, appletMode, 'r');
-        DrawText(layoutobj->font, layoutobj->posType ? x_pos + layoutobj->posStart[0] : layoutobj->posStart[0], layoutobj->posStart[1], themeCurrent.attentionTextColor, appletMode);
-    }
-    const char* loaderInfo = envGetLoaderInfo();
-    layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_LoaderInfo];
-    if (loaderInfo && layoutobj->visible) {
-        u32 x_pos = layoutobj->posStart[0];
-        char* spacePos = strchr(loaderInfo, ' ');
-        if (spacePos) {
-            char tempbuf[64] = {0};
-            size_t tempsize = spacePos - loaderInfo + 1;
-            if (tempsize > sizeof(tempbuf)-1) tempsize = sizeof(tempbuf)-1;
-            memcpy(tempbuf, loaderInfo, tempsize);
-            x_pos = GetTextXCoordinate(layoutobj->font, layoutobj->posEnd[0], tempbuf, 'r');
-        }
-        DrawText(layoutobj->font, x_pos, layoutobj->posStart[1], themeCurrent.textColor, loaderInfo);
-    }
-    #endif
-
-    #ifdef PERF_LOG_DRAW//Seperate from the PERF_LOG define since this might affect perf.
-    extern u64 g_tickdiff_frame;
-
-    char tmpstr[64];
-
-    snprintf(tmpstr, sizeof(tmpstr)-1, "%lu", g_tickdiff_frame);
-    DrawTextFromLayout(ThemeLayoutId_LogInfo, themeCurrent.textColor, tmpstr);
-    #endif
+    menuTimer += 0.016;
 
     memset(&netloader_state, 0, sizeof(netloader_state));
     netloaderGetState(&netloader_state);
@@ -756,6 +719,9 @@ void menuLoop(void) {
 
     menu = menuGetCurrent();
 
+    if (hbmenu_state == HBMENU_THEME_MENU)
+        title = "Theme Menu";
+
     if (menu->nEntries==0 || hbmenu_state == HBMENU_NETLOADER_ACTIVE)
     {
         if (hbmenu_state == HBMENU_NETLOADER_ACTIVE) {
@@ -766,68 +732,16 @@ void menuLoop(void) {
                 menuCreateMsgBox(240,240,  textGetString(StrId_Loading));
                 launchMenuEntryTask(netloader_state.me);
             }
-        } else {
-            DrawTextFromLayout(ThemeLayoutId_InfoMsg, themeCurrent.textColor, textGetString(StrId_NoAppsFound_Msg));
         }
-        drawButtons(menu, true, curPos);
     }
     else
     {
         hblDrawEntryList(menu);
-
-        layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_MenuTypeMsg];
-        int getX=0;
-
-        if (layoutobj->visible) {
-            getX = GetTextXCoordinate(layoutobj->font, layoutobj->posStart[0], textGetString(StrId_ThemeMenu), 'r');
-
-            if(hbmenu_state == HBMENU_THEME_MENU) {
-                DrawText(layoutobj->font, getX, layoutobj->posStart[1], themeCurrent.textColor, textGetString(StrId_ThemeMenu));
-            }
-        }
-
-        menuEntry_s *active_entry = NULL;
-        for (me = menu->firstEntry, i = 0; me; me = me->next, i ++) {
-            if (i==menu->curEntry) { active_entry = me; break; }
-        }
-
-        if(active_entry != NULL) {
-            const char *buttonstr = "";
-
-            if (active_entry->type == ENTRY_TYPE_THEME)
-                buttonstr = textGetString(StrId_Actions_Apply);
-            else if (active_entry->type != ENTRY_TYPE_FOLDER)
-                buttonstr = textGetString(StrId_Actions_Launch);
-            else
-                buttonstr = textGetString(StrId_Actions_Open);
-
-            layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_ButtonAText];
-            DrawTextFromLayoutRelative(ThemeLayoutId_ButtonAText, curPos[0], curPos[1], layoutobj->posStart, curPos, themeCurrent.textColor, buttonstr, 'l');
-            layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_ButtonA];
-            DrawTextFromLayoutRelative(ThemeLayoutId_ButtonA, curPos[0], curPos[1], layoutobj->posStart, curPos, themeCurrent.textColor, themeCurrent.buttonAText, 'l');
-        }
-
-        drawButtons(menu, false, curPos);
-
-        if (active_entry && active_entry->type != ENTRY_TYPE_THEME) {
-            const char *buttonstr = "";
-            if (active_entry->starred)
-                buttonstr = textGetString(StrId_Actions_Unstar);
-            else
-                buttonstr = textGetString(StrId_Actions_Star);
-
-            layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_ButtonXText];
-            DrawTextFromLayoutRelative(ThemeLayoutId_ButtonXText, curPos[0], curPos[1], layoutobj->posStart, curPos, themeCurrent.textColor, buttonstr, 'r');
-            layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_ButtonX];
-            DrawTextFromLayoutRelative(ThemeLayoutId_ButtonX, curPos[0], curPos[1], layoutobj->posStart, curPos, themeCurrent.textColor, themeCurrent.buttonXText, 'l');
-        }
-
     }
 
-    layoutobj = &themeCurrent.layoutObjects[ThemeLayoutId_MenuPath];
-    if (layoutobj->visible) DrawTextTruncate(layoutobj->font, layoutobj->posStart[0], layoutobj->posStart[1], themeCurrent.textColor, menu->dirname, layoutobj->size[0], "...");
+    if (hbmenu_state != HBMENU_NETLOADER_ACTIVE)
+        hblDrawChrome(menu, title);
 
-    hblDrawFooter();
     hblDrawLaunchBox();
     menuDrawMsgBox();
 }

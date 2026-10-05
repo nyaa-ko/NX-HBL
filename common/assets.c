@@ -96,12 +96,12 @@ Result assetsInit(void) {
         PHYSFS_unmount(tmp_path);
     }
 
-    #ifdef __SWITCH__
-    romfsExit();
+    /* Keep romfs mounted so romfs:/bgMusic.ogg stays readable for BGM. */
+#ifdef __SWITCH__
     return ret ? 0 : MAKERESULT(Module_Libnx, LibnxError_IoError);
-    #else
+#else
     return ret ? 0 : 1;
-    #endif
+#endif
 }
 
 void assetsExit(void) {
@@ -113,6 +113,9 @@ void assetsExit(void) {
     }
 
     assetsClearTheme();
+#ifdef __SWITCH__
+    romfsExit();
+#endif
 }
 
 void assetsClearTheme(void) {

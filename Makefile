@@ -3,7 +3,10 @@ export APP_TITLE	:=	Homebrew Launcher
 export APP_AUTHOR	:=	Dimok / switchbrew
 
 ifeq ($(RELEASE),)
-	export APP_VERSION	:=	$(APP_VERSION)-$(shell git describe --dirty --always)
+	GIT_REV := $(shell git describe --dirty --always 2>/dev/null)
+	ifneq ($(GIT_REV),)
+		export APP_VERSION	:=	$(APP_VERSION)-$(GIT_REV)
+	endif
 endif
 
 .PHONY: clean all nx pc dist-bin
@@ -27,6 +30,6 @@ pc:	romfs/assets.zip
 	$(MAKE) -f Makefile.pc
 
 clean:
-	@rm -Rf romfs
+	@rm -f romfs/assets.zip
 	$(MAKE) -f Makefile.pc clean
 	$(MAKE) -f Makefile.nx clean
