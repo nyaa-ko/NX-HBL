@@ -5,44 +5,47 @@
 
 /*
  * ============================================================
- *  アニメーション速度をいじる場所はここだけ
- *  Edit animation speed / easing here (the only knobs you need)
+ *  Wii U Homebrew Launcher (dimok789) 再現パラメータ
+ *  Values copied from the original libgui / HBL sources.
+ *  All values are per-frame (60 fps, same as Wii U).
  * ============================================================
  *
- * 値は「1フレームあたり」(Switch は約 60fps) です。
- * Values are per-frame at ~60 fps.
+ * HBL_PAGE_STEP_PX     HomebrewWindow::draw : currentLeftPosition +/- 35 per frame (linear)
+ * HBL_IDLE_SCALE       homebrewButtons[i].image->setScale(0.9f)
+ * HBL_GROW_TARGET      GuiButton::setEffectGrow() -> EFFECT_SCALE target 110 (%)
+ * HBL_GROW_STEP        GuiButton::setEffectGrow() -> EFFECT_SCALE amount 4 (% per frame)
+ * HBL_FADE_IN_STEP     launchBox->setEffect(EFFECT_FADE, 10, 255)
+ * HBL_FADE_OUT_STEP    element->setEffect(EFFECT_FADE, -10, 0)
+ * HBL_EXIT_FADE_STEP   Application::fadeOut() : i += 10 (black overlay)
+ * HBL_LAUNCH_BOX_YOFF  launchBox->setPosition(0, 30)  (libgui Y is up -> 30 px higher)
+ * Particles            GuiParticleImage(w, h, 500, 0.0f, 30.0f, 0.2f, 0.8f)
+ * HBL_BGM_VOLUME       bgMusic->SetVolume(50)
+ * HBL_CLICK_VOLUME     button_click.mp3 at default volume
  *
- * HBL_PAGE_LERP
- *   ページ送りが目標位置へ追いつく割合。
- *   小さいほどゆっくり滑らか / 大きいほどキビキビ。
- *   目安: 0.08 遅め,  0.14 標準,  0.22 速め,  0.32 かなり速め
- *
- * HBL_PAGE_SNAP_PX
- *   これより近づいたらページ位置をスナップ（振動防止）
- *
- * HBL_SELECT_LERP
- *   選択中バナーの拡大が追いつく割合。PAGE_LERP と同じ感覚。
- *
- * HBL_SELECT_SCALE / HBL_IDLE_SCALE
- *   選択中 / 非選択のバナー倍率。SELECT を 1.00 にすると拡大なし。
- *
- * HBL_LAUNCH_FADE
- *   起動確認ダイアログのフェードイン速度 (0.06 遅め / 0.18 速め)
- *
- * HBL_PARTICLE_SPEED
- *   背景パーティクルの速度倍率 (0.5 遅め / 1.0 標準 / 2.0 速め)
- *
- * HBL_BGM_VOLUME
- *   BGM 音量 (0.0〜1.0)。Wii U 版は約 0.50。
+ * HBL_CLICK_ON_PAD_BUTTONS
+ *   0 = 100% original behaviour: the click sound only plays for touch / arrow
+ *       buttons (on Wii U pressing (A) on a selected entry was silent).
+ *   1 = also play the click when (A)/(B) activate a button.
  */
-#define HBL_PAGE_LERP        0.14f
-#define HBL_PAGE_SNAP_PX     0.8f
-#define HBL_SELECT_LERP      0.20f
-#define HBL_SELECT_SCALE     0.96f
-#define HBL_IDLE_SCALE       0.90f
-#define HBL_LAUNCH_FADE      0.10f
-#define HBL_PARTICLE_SPEED   1.00f
-#define HBL_BGM_VOLUME       0.50f
+#define HBL_PAGE_STEP_PX         85.0f
+#define HBL_IDLE_SCALE           0.90f
+#define HBL_GROW_TARGET          1.10f
+#define HBL_GROW_STEP            0.04f
+#define HBL_FADE_IN_STEP         50
+#define HBL_FADE_OUT_STEP        50
+#define HBL_EXIT_FADE_STEP       50
+#define HBL_LAUNCH_BOX_YOFF      30
+#define HBL_PARTICLE_COUNT       500
+#define HBL_PARTICLE_MIN_RADIUS  0.0f
+#define HBL_PARTICLE_MAX_RADIUS  30.0f
+#define HBL_PARTICLE_MIN_SPEED   2.0f
+#define HBL_PARTICLE_MAX_SPEED   4.0f
+#define HBL_BGM_VOLUME           0.50f
+#define HBL_CLICK_VOLUME         1.00f
+#define HBL_CLICK_ON_PAD_BUTTONS 1
+
+/* audio (nx_main/nx_audio.c) */
+void audioPlayClick(void);
 
 void hblUiInit(void);
 void hblDrawBackground(void);
@@ -50,6 +53,7 @@ void hblDrawParticles(void);
 void hblDrawEntryList(menu_s *menu);
 void hblDrawChrome(menu_s *menu, const char *title);
 void hblDrawLaunchBox(void);
+void hblDrawScreenFade(void);
 
 bool hblLaunchBoxIsOpen(void);
 void hblLaunchBoxOpen(menuEntry_s *me);
@@ -57,7 +61,15 @@ void hblLaunchBoxClose(void);
 void hblLaunchBoxConfirm(void);
 bool hblLaunchBoxHandleInput(u64 down);
 
+/* selection model of the original: nothing is selected until a d-pad press */
+bool hblHasSelection(void);
+void hblSetSelection(menu_s *menu, int index);
 void hblNavigate(menu_s *menu, int move_item, int move_page);
+
+/* screen fade-out (Application::fadeOut) */
+bool hblInputLocked(void);
+void hblRequestExit(void);
+bool hblExitReady(void);
 
 /* Touch hit-testing in HBL layout coordinates (1280x720). */
 int  hblHitTestEntry(menu_s *menu, int px, int py);       /* entry index, or -1 */

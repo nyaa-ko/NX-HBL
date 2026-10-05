@@ -113,9 +113,16 @@ void menuHandleAButton(void) {
     {
         int i;
         menuEntry_s* me;
+        /* HomebrewWindow::OnAClick: nothing happens until an entry is selected */
+        if (!hblHasSelection())
+            return;
         for (i = 0, me = menu->firstEntry; i != menu->curEntry; i ++, me = me->next);
-        if (me->type == ENTRY_TYPE_FILE)
+        if (me->type == ENTRY_TYPE_FILE) {
+#if HBL_CLICK_ON_PAD_BUTTONS
+            audioPlayClick();
+#endif
             hblLaunchBoxOpen(me);
+        }
         else
             launchMenuEntryTask(me);
         //workerSchedule(launchMenuEntryTask, me);
@@ -744,4 +751,5 @@ void menuLoop(void) {
 
     hblDrawLaunchBox();
     menuDrawMsgBox();
+    hblDrawScreenFade();
 }

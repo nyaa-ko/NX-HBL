@@ -150,6 +150,7 @@ static void DrawGlyph(uint32_t x, uint32_t y, color_t clr, const glyph_t* glyph)
 {
     uint32_t i, j;
     const uint8_t* data = glyph->data;
+    uint32_t base_a = clr.a; /* text alpha (used by HBL fade effects) */
     x += glyph->posX;
     y -= glyph->posY; //y += glyph->posY;
     //__builtin_printf("DrawGlyph %u %u %08X\n", (unsigned int)x, (unsigned int)y, (unsigned int)clr.abgr);
@@ -157,7 +158,7 @@ static void DrawGlyph(uint32_t x, uint32_t y, color_t clr, const glyph_t* glyph)
     {
         for (i = 0; i < glyph->width; i ++)
         {
-            clr.a = data[i];
+            clr.a = (uint8_t)((data[i] * base_a) / 255);
             if (!clr.a) continue;
             DrawPixel(x+i, y+j, clr);
         }
