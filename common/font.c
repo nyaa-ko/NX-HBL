@@ -237,9 +237,14 @@ static void DrawText_(u32 font, uint32_t x, uint32_t y, color_t clr, const char*
     //__builtin_printf("DrawText %u %u %08X %s\n", (unsigned int)x, (unsigned int)y, (unsigned int)clr.abgr, text);
     //y += font->baseline;
     uint32_t origX = x;
-    if (s_font_faces_total==0) return;
+    
+    if (s_font_faces_total == 0) return;
     if (!FontSetType(font)) return;
+    
     s_font_lastusedface = s_font_faces[0];
+    
+    /* Convert top-left Y to FreeType baseline Y */
+    y += s_font_lastusedface->size->metrics.ascender / 64;
 
     while (*text)
     {
