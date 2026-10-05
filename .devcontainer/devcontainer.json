@@ -1,0 +1,12 @@
+{
+  "name": "devkitPro Switch",
+  "image": "devkitpro/devkitswitch:latest",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools"
+      ]
+    }
+  }
+}

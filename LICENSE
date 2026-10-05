@@ -1,0 +1,11 @@
+This project combines:
+
+1) Nintendo Switch Homebrew Menu (nx-hbmenu) — ISC
+   Copyright 2017-2018 nx-hbmenu Authors
+   See LICENSE-ISC.md
+
+2) Wii U Homebrew Launcher UI assets and layout — GPL-3.0
+   Copyright (C) 2015 Dimok
+   See LICENSE-GPL3
+
+The combined work is distributed under the GNU General Public License v3.
