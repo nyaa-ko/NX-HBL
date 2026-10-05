@@ -23,10 +23,8 @@ bool menuUpdateErrorScreen(void);
 u64 g_tickdiff_frame=0;
 #endif
 
-#ifdef ENABLE_AUDIO
 void audio_initialize(void);
 void audio_exit(void);
-#endif
 
 extern u32 __nx_applet_exit_mode;
 
@@ -118,9 +116,7 @@ int main(int argc, char **argv)
         snprintf(errormsg, sizeof(errormsg)-1, "Error: fontInitialize() failed.");
     }
 
-    #ifdef ENABLE_AUDIO
     if (R_SUCCEEDED(rc)) audio_initialize();
-    #endif
 
     if (R_SUCCEEDED(rc)) {
         lastret = envGetLastLoadResult();
@@ -185,9 +181,7 @@ int main(int argc, char **argv)
         __nx_applet_exit_mode = 1;
     }
 
-    #ifdef ENABLE_AUDIO
     audio_exit();
-    #endif
 
     fontExit();
     launchExit();

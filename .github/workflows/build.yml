@@ -19,26 +19,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install zip
+        run: |
+          if command -v apt-get >/dev/null 2>&1; then
+            apt-get update
+            apt-get install -y --no-install-recommends zip git
+          fi
 
       - name: Build NX-HBL
         run: make nx
+        env:
+          DEVKITPRO: /opt/devkitpro
 
-      - name: Find build output
-        if: always()
+      - name: Stage artifacts
         run: |
-          echo "Searching for build output..."
-          find . -type f \( \
-            -name "*.nro" -o \
-            -name "*.nacp" -o \
-            -name "*.nso" \
-          \) -print
+          mkdir -p dist
+          if [ -f homebrew_launcher.nro ]; then
+            cp homebrew_launcher.nro dist/homebrew_launcher.nro
+            cp homebrew_launcher.nro dist/hbmenu.nro
+          fi
+          if [ -f homebrew_launcher.nacp ]; then
+            cp homebrew_launcher.nacp dist/homebrew_launcher.nacp
+          fi
+          ls -la dist || true
 
       - name: Upload NX-HBL
         uses: actions/upload-artifact@v4
         with:
           name: NX-HBL
-          path: |
-            **/*.nro
-            **/*.nacp
-            **/*.nso
-          if-no-files-found: warn
+          path: dist/*
+          if-no-files-found: error
