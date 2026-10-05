@@ -151,7 +151,7 @@ static void DrawGlyph(uint32_t x, uint32_t y, color_t clr, const glyph_t* glyph)
     uint32_t i, j;
     const uint8_t* data = glyph->data;
     x += glyph->posX;
-    y += glyph->posY; //y += glyph->posY;
+    y -= glyph->posY; //y += glyph->posY;
     //__builtin_printf("DrawGlyph %u %u %08X\n", (unsigned int)x, (unsigned int)y, (unsigned int)clr.abgr);
     for (j = 0; j < glyph->height; j ++)
     {
