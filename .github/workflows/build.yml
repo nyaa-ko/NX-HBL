@@ -1,4 +1,3 @@
-```yaml
 name: Build NX-HBL
 
 on:
@@ -25,21 +24,19 @@ jobs:
       - name: Install Switch development tools
         run: |
           dkp-pacman -Sy --noconfirm
-          dkp-pacman -S --needed --noconfirm \
-            switch-dev \
-            switch-tools
+          dkp-pacman -S --needed --noconfirm switch-dev switch-tools
 
       - name: Build NX-HBL
-        run: |
-          make
+        run: make
 
-      - name: Show build output
+      - name: Find build output
         if: always()
         run: |
-          echo "Build directory:"
-          find . -maxdepth 3 -type f \
-            \( -name "*.nro" -o -name "*.nacp" -o -name "*.nso" \) \
-            -print
+          find . -type f \( \
+            -name "*.nro" -o \
+            -name "*.nacp" -o \
+            -name "*.nso" \
+          \) -print
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -50,4 +47,3 @@ jobs:
             **/*.nacp
             **/*.nso
           if-no-files-found: warn
-```
