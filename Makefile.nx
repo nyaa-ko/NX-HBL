@@ -55,9 +55,9 @@ export TOPDIR := $(CURDIR)
 # Only builtin.c is taken from nx_main/loaders/.
 # Do NOT add nx_main/loaders/ to SOURCES because it also contains
 # PC/SDL implementations which must not be built for Switch.
-export VPATH := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-                $(CURDIR)/nx_main/loaders \
-                $(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export VPATH := $(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
+                $(TOPDIR)/nx_main/loaders \
+                $(foreach dir,$(DATA),$(TOPDIR)/$(dir))
 
 export DEPSDIR := $(CURDIR)/$(BUILD)
 
